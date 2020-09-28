@@ -43,24 +43,35 @@ func isRegistered(token string) string {
 	return r
 }
 
-func registerToken(keyNum string) string {
-	var n string
-	var t string
-	switch keyNum {
-	case "1":
-		n = "API key"
-	case "2":
-		n = "API secret"
-	case "3":
-		n = "access token"
-	case "4":
-		n = "access secret"
-	}
-	fmt.Println("Enter " + n)
-	fmt.Scan(&t)
-
-	return "OK"
-}
+// func registerToken(keyNum string) bool {
+// 	var n string
+// 	var t string
+// 	switch keyNum {
+// 	case "1":
+// 		n = "API key"
+// 		t = envCkey
+// 	case "2":
+// 		n = "API secret"
+// 		t = envCsec
+// 	case "3":
+// 		n = "access token"
+// 		t = envAtok
+// 	case "4":
+// 		n = "access secret"
+// 		t = envAsec
+// 	default:
+// 		return false
+// 	}
+// 	fmt.Print("Enter " + n + ": ")
+// 	var key string
+// 	keypw, err := terminal.ReadPassword(syscall.Stdin)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	key = string(keypw)
+// 	os.Setenv(t, key)
+// 	return true
+// }
 
 func main() {
 
@@ -82,17 +93,18 @@ func main() {
 			fmt.Println("(2)API secret:    " + isRegistered(consumerSecret))
 			fmt.Println("(3)Access token:  " + isRegistered(accessToken))
 			fmt.Println("(4)Access Secret: " + isRegistered(accessSecret))
-			fmt.Print("Enter the number of the token you want to register (Press 'q' to quit): ")
+			fmt.Print("Enter the number of the token you want to register or change (Press 'q' to quit): ")
 			var regNum string
 			fmt.Scan(&regNum)
 
 			if regNum == "q" {
 				break
 			}
-			// switch regNum {
-			// case "1":
-			// 	fmt.Println("Enter API Key")
-			// 	var
+			// res := registerToken(regNum)
+			// if res {
+			// 	fmt.Println("Registered!")
+			// } else {
+			// 	fmt.Println("Invalid value:", regNum)
 			// }
 		}
 	} else {
