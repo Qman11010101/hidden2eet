@@ -43,6 +43,7 @@ func isRegistered(token string) string {
 	return r
 }
 
+// TODO:Make ".hidden2eet" dir on $HOME and save file
 // func registerToken(keyNum string) bool {
 // 	var n string
 // 	var t string
