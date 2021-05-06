@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -16,14 +17,25 @@ type ErrResponse struct {
 	Message string
 }
 
+// SettingHidden2eet : Format of setting file
+type SettingHidden2eet struct {
+	Consumerkey    string `json:"consumerKey"`
+	Consumersecret string `json:"consumerSecret"`
+	Accesstoken    string `json:"accessToken"`
+	Accesssecret   string `json:"accessSecret"`
+}
+
 // Version def
 const version = 0.1
 
-// API keys name def
-const envCkey = "hidden2eet_consumer_key"
-const envCsec = "hidden2eet_consumer_secret"
-const envAtok = "hidden2eet_access_token"
-const envAsec = "hidden2eet_access_secret"
+// Blank setting file
+const settingBase = `{
+	"consumerKey": "",
+	"consumerSecret": "",
+	"accessToken": "",
+	"accessSecret": ""
+}
+`
 
 // Arguments name def
 const help = "help"
@@ -43,36 +55,13 @@ func isRegistered(token string) string {
 	return r
 }
 
-// TODO:Make ".hidden2eet" dir on $HOME and save file
-// func registerToken(keyNum string) bool {
-// 	var n string
-// 	var t string
-// 	switch keyNum {
-// 	case "1":
-// 		n = "API key"
-// 		t = envCkey
-// 	case "2":
-// 		n = "API secret"
-// 		t = envCsec
-// 	case "3":
-// 		n = "access token"
-// 		t = envAtok
-// 	case "4":
-// 		n = "access secret"
-// 		t = envAsec
-// 	default:
-// 		return false
-// 	}
-// 	fmt.Print("Enter " + n + ": ")
-// 	var key string
-// 	keypw, err := terminal.ReadPassword(syscall.Stdin)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	key = string(keypw)
-// 	os.Setenv(t, key)
-// 	return true
-// }
+func exists(name string) bool {
+	_, err := os.Stat(name)
+	return !os.IsNotExist(err)
+}
+
+var homeDirectory = os.Getenv("HOMEPATH")
+var hidden2eetFile = "C:" + homeDirectory + "\\.hidden2eet"
 
 func main() {
 
@@ -84,35 +73,89 @@ func main() {
 		fmt.Println("	register - Register account API keys")
 		fmt.Println("	help     - Display this help")
 	} else if flag.Arg(0) == register {
+		if !exists(hidden2eetFile) {
+			err := ioutil.WriteFile(hidden2eetFile, []byte(settingBase), 0666)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		setting, err := ioutil.ReadFile(hidden2eetFile)
+		if err != nil {
+			panic(err)
+		}
+
+		var settingJson SettingHidden2eet
+		err = json.Unmarshal(setting, &settingJson)
+		if err != nil {
+			panic(err)
+		}
+
 		for {
-			consumerKey := os.Getenv(envCkey)
-			consumerSecret := os.Getenv(envCsec)
-			accessToken := os.Getenv(envAtok)
-			accessSecret := os.Getenv(envAsec)
+			consumerKey := settingJson.Consumerkey
+			consumerSecret := settingJson.Consumersecret
+			accessToken := settingJson.Accesstoken
+			accessSecret := settingJson.Accesssecret
 
 			fmt.Println("(1)API key:       " + isRegistered(consumerKey))
 			fmt.Println("(2)API secret:    " + isRegistered(consumerSecret))
 			fmt.Println("(3)Access token:  " + isRegistered(accessToken))
-			fmt.Println("(4)Access Secret: " + isRegistered(accessSecret))
+			fmt.Println("(4)Access secret: " + isRegistered(accessSecret))
 			fmt.Print("Enter the number of the token you want to register or change (Press 'q' to quit): ")
 			var regNum string
 			fmt.Scan(&regNum)
 
 			if regNum == "q" {
+				if consumerKey == "" || consumerSecret == "" || accessToken == "" || accessSecret == "" {
+					fmt.Println("NOTICE: Unregistered API keys exist!")
+				}
 				break
+			} else if regNum == "1" {
+				fmt.Print("Input your API Key: ")
+				var key string
+				fmt.Scan(&key)
+				settingJson.Consumerkey = key
+			} else if regNum == "2" {
+				fmt.Print("Input your API secret: ")
+				var key string
+				fmt.Scan(&key)
+				settingJson.Consumersecret = key
+			} else if regNum == "3" {
+				fmt.Print("Input your Access token: ")
+				var key string
+				fmt.Scan(&key)
+				settingJson.Accesstoken = key
+			} else if regNum == "4" {
+				fmt.Print("Input your Access secret: ")
+				var key string
+				fmt.Scan(&key)
+				settingJson.Accesssecret = key
 			}
-			// res := registerToken(regNum)
-			// if res {
-			// 	fmt.Println("Registered!")
-			// } else {
-			// 	fmt.Println("Invalid value:", regNum)
-			// }
+		}
+
+		settingWrite, err := json.Marshal(settingJson)
+		if err != nil {
+			panic(err)
+		}
+		outputSetting := []byte(settingWrite)
+		err = ioutil.WriteFile(hidden2eetFile, outputSetting, 0666)
+		if err != nil {
+			panic(err)
 		}
 	} else {
-		consumerKey := os.Getenv(envCkey)
-		consumerSecret := os.Getenv(envCsec)
-		accessToken := os.Getenv(envAtok)
-		accessSecret := os.Getenv(envAsec)
+		setting, err := ioutil.ReadFile(hidden2eetFile)
+		if err != nil {
+			panic(err)
+		}
+		var settingJson SettingHidden2eet
+		err = json.Unmarshal(setting, &settingJson)
+		if err != nil {
+			panic(err)
+		}
+		consumerKey := settingJson.Consumerkey
+		consumerSecret := settingJson.Consumersecret
+		accessToken := settingJson.Accesstoken
+		accessSecret := settingJson.Accesssecret
 		if consumerKey == "" || consumerSecret == "" || accessToken == "" || accessSecret == "" {
 			fmt.Println("You haven't registered API keys!")
 			fmt.Println("Execute hidden2eet with the argument 'register'.")
